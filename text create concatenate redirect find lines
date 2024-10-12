@@ -1,0 +1,116 @@
+Tasks
+1.	Create a text file named “hello-world” which contains 3 lines:
+Hello
+Wonderful
+World
+Specify how you created it:
+ [st_242_02@c7-sandbox ~]$ nano hello-world.txt; 
+in nano; entered                  
+Hello
+Wonderful
+World                                                                                                                             
+^O; Enter; ^X                                   
+[st_242_02@c7-sandbox ~]$ cat hello-world.txt
+Hello
+Wonderful
+World 
+2.	Create a new file with the following content, based on the content of “hello-world”:
+World
+Wonderful
+Hello
+[st_242_02@c7-sandbox ~]$ tac hello-world.txt > new-file.txt
+[st_242_02@c7-sandbox ~]$ cat new-file.txt
+World
+Wonderful
+Hello
+Here 'tac' displays file content in reverse order and '>' redirects the output to new-file.txt
+ 
+3.	Suggest a new way to accomplish p.2, i.e. with new commands compared to p.2.
+[st_242_02@c7-sandbox ~]$ sort -r hello-world.txt > newer.txt
+[st_242_02@c7-sandbox ~]$ cat newer.txt
+World
+Wonderful
+Hello
+ 
+4.	Solve the same task in a new way compared to p.2 and p.3:
+Variant1:
+[st_242_02@c7-sandbox ~]$ cat hello-world.txt | sort -r > new.txt       
+[st_242_02@c7-sandbox ~]$ cat new.txt                                   
+World                                                                   
+Wonderful                                                               
+Hello
+Variant2: 
+2 - 4. Very good,
+but using "sed" is overcomplicated here.
+The same could be achieved via several tail/head usage or sequential "egrep" calls.
+[st_242_02@c7-sandbox ~]$ sed '1!G;h;$!d' hello-world.txt > new1.txt
+[st_242_02@c7-sandbox ~]$ cat new1.txt
+World
+Wonderful
+Hello
+Here 'sed' - streams' editor. Option '1!G;h;$!d' consist of the three parts:
+1!G - '1' - 1st + line '!' - not: any line processed but 1st; 'G' - the buffer of the 'sed' moving lines (starts from 2nd) to the collected hold space;
+'h' - one more buffer of the 'sed' moves the current line from pattern space (1st then 2nd) to the hold space;
+$!d - '$' - last line + '!' - not: any line but the last; 'd' deletes from the pattern space from being printed.
+Sum up 1st line goes to hold space via pattern space, then 2nd the as well, 3rd one provides printing of collected pattern in reverse order.
+ 
+5.	Concatenate the content of /etc/passwd, /etc/group, /etc/hosts, /etc/resolv.conf, then (every subtask below requires its own solution):
+5. Technically correct but no need to use relative paths unless really required.
+1.	Write the result into a file
+[st_242_02@c7-sandbox etc]$ cat ../../etc/passwd ../../etc/group ../../etc/hosts ../../etc/resolv.conf > concat-file.txt
+-bash: concat-file.txt: Permission denied
+JUST simplify it to
+cat /etc/passwd /etc/group /etc/hosts /etc/resolv.conf > concat-file.txt;
+2.	Count the number of lines in this file
+wc -l concat-file.txt;
+3.	Without writing the result into a file, find there all lines containing “server”, then print them to the terminal
+egrep server /etc/passwd /etc/group /etc/hosts /etc/resolv.conf;
+ 
+6.	Find all files in /etc (and all included subdirectories) containing your username. The file content should be inspected, not file names (i.e., the "find" command won't help here). Only file names should be handled (not matching lines). Do the following with them - each subtask requires its own solution:
+1.	Place the result and errors into 2 separate files
+egrep -rl st_242_02 /etc 1>results.txt 2>errors.txt;
+2.	Place the result and errors into the same files, without using temporary files
+egrep -rl st_242_02 /etc 1>total.txt 2>&1;
+OR
+egrep -rl st_242_02 /etc &>total.txt;
+3.	Count the number of lines in p.a and p.b above
+wc -l results.txt errors.txt; the result will be lines for each file and total for both.
+ 
+7.	Find all lines from /etc/passwd containing “/bin/bash”, but not containing “root”. Write the results into an output file.
+egrep /bin/bash /etc/passwd | grep -v "root" > output-root.txt;
+ 
+8.	Find all lines from /etc/passwd containing “/home”. Write the results into another output file.
+egrep /home /etc/passwd > output-home.txt;
+9.	Compare files from p.7 and p.8 - at least, print their size and numbers of lines.
+wc -l output-root.txt output-home.txt
+wc -c output-root.txt output-home.txt
+ 
+10.	(*) (requires a live Linux machine, e.g. VM) Find all lines containing “root” or your username from all files in /etc, and print these lines into one resulting file.
+10. Correct, but
+- no need to use "egrep -E", because "egrep" itself is "grep -E".
+- the same note about relative and absolute paths.
+egrep -r 'root|st_242_02' /etc > result.txt
+In Ubuntu (Oracle VM):
+egrep -r 'root|budi' ../../etc > result.tx
+ 
+11.	(*) (requires a live Linux machine, e.g. VM) Using some commands (not manually!), find files in /etc containing both “root” and your username in their content. Note: in these files, these patterns are not met along the same lines!
+11. Very good,
+that's the shortest solution.
+Please use absolute paths here.
+egrep -rl root ../../etc | xargs egrep -l budi;
+xargs used to build and execute command lines from standard input.
+ 
+12.	(For students of the course) In directory /apps/logs on 192.168.40.14 and all included subdirectories do the following:
+1.	Find all files containing “fail” (case-insensitive) in their content (only in their content, not in their names). Only file names should be printed to the terminal. 
+[st_242_02@c7-sandbox /]$ egrep -ril fail /apps/logs 
+/apps/logs/nodejs-auth.st00.log
+/apps/logs/java-ftb.st00.log
+/apps/logs/auth/java-auth.st00.log
+ 
+2.	Find and print all lines containing “ERROR” (case-sensitive). These lines should be written to an output file. Then ensure this resulting file is not empty.
+[st_242_02@c7-sandbox /]$ egrep -r ERROR /apps/logs > error-logs.txt           -bash: error-logs.txt: Permission denied
+ 
+13.	(For students of the course) In directory /apps/logs and all included subdirectories find and print all lines from all files containing the following patterns: “error”, or “fail”, or “bug”. This search should be case-insensitive. Write the result into an output file. Notes: a) one line may contain more than 1 pattern b) the task can be solved via either “egrep -e” or regular expressions.
+[st_242_02@c7-sandbox /]$ egrep -riE 'error|fail|bug' /apps/logs > patterns.txt
+-bash: patterns.txt: Permission denied
+
